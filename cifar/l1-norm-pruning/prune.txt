@@ -1,0 +1,4 @@
+Number of parameters: 
+5397034
+Test accuracy: 
+tensor(0)

@@ -1,0 +1,10 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+.vscode/
+**/data.cifar10/
+**/logs/
+**/pretrained_model/
+pruned.pth.tar
