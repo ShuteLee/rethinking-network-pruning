@@ -51,7 +51,7 @@ print('Pre-processing Successful!')
 
 # simple test model after Pre-processing prune (simple set BN scales to zeros)
 def test(model):
-    kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
+    kwargs = {'num_workers': 0, 'pin_memory': True} if args.cuda else {}
     if args.dataset == 'cifar10':
         test_loader = torch.utils.data.DataLoader(
             datasets.CIFAR10('./data.cifar10', train=False, transform=transforms.Compose([
@@ -66,15 +66,16 @@ def test(model):
             batch_size=args.test_batch_size, shuffle=True, **kwargs)
     else:
         raise ValueError("No valid dataset is given.")
-    model.eval()
+    #model.eval()
     correct = 0
-    for data, target in test_loader:
-        if args.cuda:
-            data, target = data.cuda(), target.cuda()
-        data, target = Variable(data, volatile=True), Variable(target)
-        output = model(data)
-        pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
-        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+    with torch.no_grad():
+        for data, target in test_loader:
+            if args.cuda:
+                data, target = data.cuda(), target.cuda()
+            data, target = Variable(data), Variable(target)
+            output = model(data)
+            pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+            correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 
     print('\nTest set: Accuracy: {}/{} ({:.1f}%)\n'.format(
         correct, len(test_loader.dataset), 100. * correct / len(test_loader.dataset)))
