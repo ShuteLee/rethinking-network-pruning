@@ -5,6 +5,7 @@ from pruning import *
 # from MyProblem import MyProblem # 导入自定义问题接口
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 class MyProblem(ea.Problem): # 继承Problem父类
+    generate_num = 0
     filter_scale = [1, 2, 3, 3, 2]
     target = 32
     def __init__(self):
@@ -21,22 +22,28 @@ class MyProblem(ea.Problem): # 继承Problem父类
         ea.Problem.__init__(self, name, M, maxormins, Dim, varTypes, lb, ub, lbin, ubin)
     
     def aimFunc(self, pop): # 目标函数
+        self.generate_num += 1
+        print('generation:{}'.format(self.generate_num))
         x = pop.Phen # 得到决策变量矩阵
+        x = x[:] * (1 / np.sum(x, 1) * self.target).reshape(-1, 1)
         x = x.astype(int)
         objv = []
         for i in range(x.shape[0]):
             left = self.target
             num_list = []
-            for item in x[i]:
-                print(item, left)
+            for item in x[i][:-1]:
                 if left > 0:
                     num_list.append(np.min([left, item]))
                     left = left - np.min([left, item])
                 else:
                     num_list.append(0)
+            num_list.append(left)
             print('pruning num of each step is:{}'.format(num_list))
             pruner = Pruner()
             objv.append([pruner.pruning_list(num_list)])
+            objv.append((num_list[0] - 5)*2+(num_list[0] - 3)*2+(num_list[0] - 1)*2+(num_list[0] +1)*2+(num_list[0] +3)*2)
+        objv = np.array(objv,dtype=np.int)
+        objv = np.reshape(objv, (-1, 1))
         pop.ObjV = objv
 
 

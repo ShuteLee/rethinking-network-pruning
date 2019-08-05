@@ -21,7 +21,7 @@ class Pruner():
     filter_num_scale = [1, 2, 3, 3, 2]
     state = [64, 128, 192, 192, 128]
 
-    lr = 0.1
+    lr = 0.001
     momentum = 0.9
     weight_decay = 0
 
@@ -177,9 +177,9 @@ class Pruner():
                 m1.running_var = m0.running_var.clone()
 
         self.model = newmodel
-        self.fine_tuning(1)
+        acc = self.fine_tuning(1)
         
-        return self.test()
+        return acc
 
 
     def fine_tuning(self, epochs):              
@@ -203,4 +203,5 @@ class Pruner():
                     print('Train Epoch: {} [{}/{} ({:.1f}%)]\tLoss: {:.6f}'.format(
                         epoch, batch_idx * len(data), len(self.train_loader.dataset),
                         100. * batch_idx / len(self.train_loader), loss.item()))
+        return self.test()
 
