@@ -13,6 +13,8 @@ from torch.autograd import Variable
 
 import models
 
-a = 10
-b = [a]
-print(b)
+x = np.ones((5, 3), np.int)
+temp = np.array([1, 0, 0, 1, 0]).reshape(-1, 1)
+print(x[:])
+x[:] = temp[:]
+print(x)

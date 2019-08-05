@@ -16,8 +16,8 @@ import models
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch Slimming CIFAR training')
-parser.add_argument('--dataset', type=str, default='cifar100',
-                    help='training dataset (default: cifar100)')
+parser.add_argument('--dataset', type=str, default='cifar10',
+                    help='training dataset (default: cifar10)')
 parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=256, metavar='N',

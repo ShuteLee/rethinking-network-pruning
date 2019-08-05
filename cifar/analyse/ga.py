@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import geatpy as ea # import geatpy
-import pruning *
+from pruning import *
 # from MyProblem import MyProblem # 导入自定义问题接口
-
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 class MyProblem(ea.Problem): # 继承Problem父类
     filter_scale = [1, 2, 3, 3, 2]
     target = 32
@@ -12,9 +12,9 @@ class MyProblem(ea.Problem): # 继承Problem父类
         M = 1 # 初始化M（目标维数）
         maxormins = [-1] # 初始化maxormins（目标最小最大化标记列表，1：最小化该目标；-1：最大化该目标）
         Dim = 5 # 初始化Dim（决策变量维数）
-        varTypes = [0] * Dim # 初始化varTypes（决策变量的类型，元素为0表示对应的变量是连续的；1表示是离散的）
-        lb = [0] # 决策变量下界
-        ub = [target] # 决策变量上界
+        varTypes = [1] * Dim # 初始化varTypes（决策变量的类型，元素为0表示对应的变量是连续的；1表示是离散的）
+        lb = [0,0,0,0,0] # 决策变量下界
+        ub = [self.target,self.target,self.target,self.target,self.target] # 决策变量上界
         lbin = [1] * Dim # 决策变量下边界
         ubin = [1] * Dim # 决策变量上边界
         # 调用父类构造方法完成实例化
@@ -22,16 +22,22 @@ class MyProblem(ea.Problem): # 继承Problem父类
     
     def aimFunc(self, pop): # 目标函数
         x = pop.Phen # 得到决策变量矩阵
-        left = target
-        num_list = []
-        for item in x:
-            if left > 0:
-                num_list.append(np.min(left, item))
-                left = left - np.min(left, item)
-            else:
-                num_list.append(0)
-        pruner = pruning.Pruner()
-        pop.ObjV = pruner.pruning_list(num_list)
+        x = x.astype(int)
+        objv = []
+        for i in range(x.shape[0]):
+            left = self.target
+            num_list = []
+            for item in x[i]:
+                print(item, left)
+                if left > 0:
+                    num_list.append(np.min([left, item]))
+                    left = left - np.min([left, item])
+                else:
+                    num_list.append(0)
+            print('pruning num of each step is:{}'.format(num_list))
+            pruner = Pruner()
+            objv.append([pruner.pruning_list(num_list)])
+        pop.ObjV = objv
 
 
 """==================================实例化问题对象================================"""

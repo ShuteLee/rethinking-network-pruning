@@ -7,7 +7,7 @@ from torch.autograd import Variable
 
 __all__ = ['alexnet']
 
-defaultcfg = [64, 'M', 128, 'M', 192, 192, 128]
+defaultcfg = [64, 'M', 128, 'M', 192, 192, 128, 'M']
 
 class alexnet(nn.Module):
     def __init__(self, dataset='cifar10', init_weights=True, cfg=None):
@@ -22,7 +22,7 @@ class alexnet(nn.Module):
         if dataset == 'cifar10':
             num_classes = 10
         self.classifier = nn.Sequential(
-              nn.Linear(cfg[-1]*16, 512),
+              nn.Linear(cfg[-2]*16, 512),
               nn.ReLU(inplace=True),
               nn.Linear(512, num_classes)
             )
@@ -65,8 +65,3 @@ class alexnet(nn.Module):
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
 
-if __name__ == '__main__':
-    net = vgg()
-    x = Variable(torch.FloatTensor(16, 3, 40, 40))
-    y = net(x)
-    print(y.data.shape)

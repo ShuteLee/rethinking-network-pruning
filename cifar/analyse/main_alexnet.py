@@ -26,11 +26,11 @@ parser.add_argument('--epochs', type=int, default=160, metavar='N',
                     help='number of epochs to train (default: 160)')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('--lr', type=float, default=0.1, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
                     help='learning rate (default: 0.1)')
 parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
                     help='SGD momentum (default: 0.9)')
-parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
+parser.add_argument('--weight-decay', '--wd', default=0, type=float,
                     metavar='W', help='weight decay (default: 1e-4)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
@@ -42,7 +42,7 @@ parser.add_argument('--log-interval', type=int, default=100, metavar='N',
                     help='how many batches to wait before logging training status')
 parser.add_argument('--save', default='./logs', type=str, metavar='PATH',
                     help='path to save prune model (default: current directory)')
-parser.add_argument('--arch', default='vgg', type=str, 
+parser.add_argument('--arch', default='alexnet', type=str, 
                     help='architecture to use')
 parser.add_argument('--depth', default=16, type=int,
                     help='depth of the neural network')
@@ -82,6 +82,7 @@ if args.cuda:
     model.cuda()
 
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+# optimizer = optim.Adam(model.parameters(), lr=0.0001 )
 
 if args.resume:
     if os.path.isfile(args.resume):
@@ -97,7 +98,6 @@ if args.resume:
         print("=> no checkpoint found at '{}'".format(args.resume))
 
 def train(epoch):
-    model.train()
     avg_loss = 0.
     train_acc = 0.
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -115,7 +115,7 @@ def train(epoch):
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.1f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.item()))
+                100. * batch_idx / len(train_loader), loss))
 
 def test():
     test_loss = 0
