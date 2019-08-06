@@ -41,7 +41,7 @@ class MyProblem(ea.Problem): # 继承Problem父类
             print('pruning num of each step is:{}'.format(num_list))
             pruner = Pruner()
             objv.append([pruner.pruning_list(num_list)])
-            objv.append((num_list[0] - 5)*2+(num_list[0] - 3)*2+(num_list[0] - 1)*2+(num_list[0] +1)*2+(num_list[0] +3)*2)
+            # objv.append((num_list[0] - 5)*2+(num_list[0] - 3)*2+(num_list[0] - 1)*2+(num_list[0] +1)*2+(num_list[0] +3)*2)
         objv = np.array(objv,dtype=np.int)
         objv = np.reshape(objv, (-1, 1))
         pop.ObjV = objv
@@ -51,7 +51,7 @@ class MyProblem(ea.Problem): # 继承Problem父类
 problem = MyProblem() # 生成问题对象
 """==================================种群设置================================"""
 Encoding = 'BG'       # 编码方式
-NIND = 5             # 种群规模
+NIND = 6             # 种群规模
 Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders) # 创建区域描述器
 population = ea.Population(Encoding, Field, NIND) # 实例化种群对象（此时种群还没被初始化，仅仅是完成种群对象的实例化）
 """==================================算法参数设置================================"""

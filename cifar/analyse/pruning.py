@@ -76,8 +76,8 @@ class Pruner():
                 pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
                 correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 
-        print('\nTest set: Accuracy: {}/{} ({:.1f}%)\n'.format(
-            correct, len(test_loader.dataset), 100. * correct / len(test_loader.dataset)))
+        print('Test set: Accuracy: {}/{} ({})\n'.format(
+            correct, len(test_loader.dataset), float(correct)/len(test_loader.dataset)))
         return correct / float(len(test_loader.dataset))
 
 
@@ -182,7 +182,9 @@ class Pruner():
         return acc
 
 
-    def fine_tuning(self, epochs):              
+    def fine_tuning(self, epochs):  
+        if epochs == 0:
+            acc = self.test()          
         optimizer = optim.SGD(self.model.parameters(), lr=self.lr, momentum=self.momentum, weight_decay=self.weight_decay)
         for epoch in range(epochs):
             avg_loss = 0.
@@ -203,5 +205,7 @@ class Pruner():
                     print('Train Epoch: {} [{}/{} ({:.1f}%)]\tLoss: {:.6f}'.format(
                         epoch, batch_idx * len(data), len(self.train_loader.dataset),
                         100. * batch_idx / len(self.train_loader), loss.item()))
-        return self.test()
+
+            acc =  self.test()
+        return acc
 
