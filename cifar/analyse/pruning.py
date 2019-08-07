@@ -78,7 +78,7 @@ class Pruner():
 
         print('Test set: Accuracy: {}/{} ({})\n'.format(
             correct, len(test_loader.dataset), float(correct)/len(test_loader.dataset)))
-        return correct / float(len(test_loader.dataset))
+        return float(correct) / len(test_loader.dataset)
 
 
     def pruning_list(self, num_list):

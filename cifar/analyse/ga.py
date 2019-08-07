@@ -2,34 +2,47 @@
 import numpy as np
 import geatpy as ea # import geatpy
 from pruning import *
+import xlwt
+import argparse
 # from MyProblem import MyProblem # 导入自定义问题接口
-os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+
+parser = argparse.ArgumentParser(description='PyTorch Slimming CIFAR training')
+parser.add_argument('--ptarget', type=int, default=32, help='pruning target')
+parser.add_argument('--ptimes', type=int, default=5, help='pruning times')
+parser.add_argument('--save_name', type=str, default='data', help='savig to excel')
+parser.add_argument('--log_name', type=str, default='data', help='savig to log')
+args = parser.parse_args()
+
+workbook = xlwt.Workbook()
+sheet = workbook.add_sheet('data')
+log_file = open(args.log_name, 'w')
+
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 class MyProblem(ea.Problem): # 继承Problem父类
     generate_num = 0
     filter_scale = [1, 2, 3, 3, 2]
-    target = 32
     def __init__(self):
         name = 'MyProblem' # 初始化name（函数名称，可以随意设置）
         M = 1 # 初始化M（目标维数）
         maxormins = [-1] # 初始化maxormins（目标最小最大化标记列表，1：最小化该目标；-1：最大化该目标）
-        Dim = 5 # 初始化Dim（决策变量维数）
+        Dim = args.ptimes+1 # 初始化Dim（决策变量维数）
         varTypes = [1] * Dim # 初始化varTypes（决策变量的类型，元素为0表示对应的变量是连续的；1表示是离散的）
-        lb = [0,0,0,0,0] # 决策变量下界
-        ub = [self.target,self.target,self.target,self.target,self.target] # 决策变量上界
+        lb = np.zeros(Dim, dtype=np.int).tolist() # 决策变量下界
+        ub = (np.ones(Dim, dtype=np.int)*args.ptarget).tolist() # 决策变量上界
         lbin = [1] * Dim # 决策变量下边界
         ubin = [1] * Dim # 决策变量上边界
         # 调用父类构造方法完成实例化
         ea.Problem.__init__(self, name, M, maxormins, Dim, varTypes, lb, ub, lbin, ubin)
     
     def aimFunc(self, pop): # 目标函数
-        self.generate_num += 1
-        print('generation:{}'.format(self.generate_num))
+        # print('generation:{}'.format(self.generate_num))
         x = pop.Phen # 得到决策变量矩阵
-        x = x[:] * (1 / np.sum(x, 1) * self.target).reshape(-1, 1)
+        x = x[:] * (1 / np.sum(x, 1) * args.ptarget).reshape(-1, 1)
         x = x.astype(int)
         objv = []
         for i in range(x.shape[0]):
-            left = self.target
+            print('generation:{}, individual:{}'.format(self.generate_num, i))
+            left = args.ptarget
             num_list = []
             for item in x[i][:-1]:
                 if left > 0:
@@ -40,11 +53,15 @@ class MyProblem(ea.Problem): # 继承Problem父类
             num_list.append(left)
             print('pruning num of each step is:{}'.format(num_list))
             pruner = Pruner()
-            objv.append([pruner.pruning_list(num_list)])
+            temp = pruner.pruning_list(num_list)
+            objv.append(temp)
+            for j in range(len(num_list)):
+                sheet.write(self.generate_num*(args.ptimes+2)+i+1, j+1, int(num_list[j]))
+            sheet.write(self.generate_num*(args.ptimes+2)+i+1, j+3, temp)
             # objv.append((num_list[0] - 5)*2+(num_list[0] - 3)*2+(num_list[0] - 1)*2+(num_list[0] +1)*2+(num_list[0] +3)*2)
-        objv = np.array(objv,dtype=np.int)
-        objv = np.reshape(objv, (-1, 1))
-        pop.ObjV = objv
+        objv = np.array(objv,dtype=np.float)
+        pop.ObjV = objv.reshape(-1, 1)
+        self.generate_num += 1
 
 
 """==================================实例化问题对象================================"""
@@ -70,6 +87,7 @@ for i in range(var_trace.shape[1]):
 print('有效进化代数：%s'%(obj_trace.shape[0]))
 print('最优的一代是第 %s 代'%(best_gen + 1))
 print('评价次数：%s'%(myAlgorithm.evalsNum))
+workbook.save(args.save_name)
 print('时间已过 %s 秒'%(myAlgorithm.passTime))
 
 
