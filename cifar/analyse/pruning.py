@@ -82,6 +82,7 @@ class Pruner():
 
 
     def pruning_list(self, num_list):
+        acc_p = []
         for num in num_list:
             print(self.state)
             temp = np.array(self.state) - np.array(self.filter_num_scale) * num
@@ -92,9 +93,12 @@ class Pruner():
             cfg.append('M')
             print('cfg is: {}'.format(cfg))
             self.pruning_step(cfg)
+            self.fine_tuning(1)
+            acc_p.append(self.test())
             self.state = temp.copy()
         self.fine_tuning(20)
-        return self.test()
+        acc_f = self.test()
+        return acc_p.copy(), acc_f
 
     def pruning_step(self, cfg):
         cfg_mask = []
@@ -177,9 +181,6 @@ class Pruner():
                 m1.running_var = m0.running_var.clone()
 
         self.model = newmodel
-        acc = self.fine_tuning(1)
-        
-        return acc
 
 
     def fine_tuning(self, epochs):  
@@ -205,7 +206,4 @@ class Pruner():
                     print('Train Epoch: {} [{}/{} ({:.1f}%)]\tLoss: {:.6f}'.format(
                         epoch, batch_idx * len(data), len(self.train_loader.dataset),
                         100. * batch_idx / len(self.train_loader), loss.item()))
-
-            acc =  self.test()
-        return acc
 

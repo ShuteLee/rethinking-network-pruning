@@ -9,13 +9,12 @@ import argparse
 parser = argparse.ArgumentParser(description='PyTorch Slimming CIFAR training')
 parser.add_argument('--ptarget', type=int, default=32, help='pruning target')
 parser.add_argument('--ptimes', type=int, default=5, help='pruning times')
-parser.add_argument('--save_name', type=str, default='data', help='savig to excel')
-parser.add_argument('--log_name', type=str, default='data', help='savig to log')
+parser.add_argument('--save_name', type=str, default='data.xls', help='savig to excel')
+parser.add_argument('--nind', type=int, default=5, help='nind')
 args = parser.parse_args()
 
 workbook = xlwt.Workbook()
 sheet = workbook.add_sheet('data')
-log_file = open(args.log_name, 'w')
 
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 class MyProblem(ea.Problem): # 继承Problem父类
@@ -25,7 +24,7 @@ class MyProblem(ea.Problem): # 继承Problem父类
         name = 'MyProblem' # 初始化name（函数名称，可以随意设置）
         M = 1 # 初始化M（目标维数）
         maxormins = [-1] # 初始化maxormins（目标最小最大化标记列表，1：最小化该目标；-1：最大化该目标）
-        Dim = args.ptimes+1 # 初始化Dim（决策变量维数）
+        Dim = args.ptimes # 初始化Dim（决策变量维数）
         varTypes = [1] * Dim # 初始化varTypes（决策变量的类型，元素为0表示对应的变量是连续的；1表示是离散的）
         lb = np.zeros(Dim, dtype=np.int).tolist() # 决策变量下界
         ub = (np.ones(Dim, dtype=np.int)*args.ptarget).tolist() # 决策变量上界
@@ -53,11 +52,12 @@ class MyProblem(ea.Problem): # 继承Problem父类
             num_list.append(left)
             print('pruning num of each step is:{}'.format(num_list))
             pruner = Pruner()
-            temp = pruner.pruning_list(num_list)
-            objv.append(temp)
+            acc_p, acc_f = pruner.pruning_list(num_list)
+            objv.append(acc_f)
             for j in range(len(num_list)):
-                sheet.write(self.generate_num*(args.ptimes+2)+i+1, j+1, int(num_list[j]))
-            sheet.write(self.generate_num*(args.ptimes+2)+i+1, j+3, temp)
+                sheet.write(self.generate_num*(args.nind+2)+i+1, j+1, int(num_list[j]))
+                sheet.write(self.generate_num*(args.nind+2)+i+1, j+args.ptimes+2, acc_p[j])
+            sheet.write(self.generate_num*(args.nind+2)+i+1, j+args.ptimes+4, acc_f)
             # objv.append((num_list[0] - 5)*2+(num_list[0] - 3)*2+(num_list[0] - 1)*2+(num_list[0] +1)*2+(num_list[0] +3)*2)
         objv = np.array(objv,dtype=np.float)
         pop.ObjV = objv.reshape(-1, 1)
@@ -68,7 +68,7 @@ class MyProblem(ea.Problem): # 继承Problem父类
 problem = MyProblem() # 生成问题对象
 """==================================种群设置================================"""
 Encoding = 'BG'       # 编码方式
-NIND = 6             # 种群规模
+NIND = args.nind             # 种群规模
 Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders) # 创建区域描述器
 population = ea.Population(Encoding, Field, NIND) # 实例化种群对象（此时种群还没被初始化，仅仅是完成种群对象的实例化）
 """==================================算法参数设置================================"""
