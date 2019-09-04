@@ -68,20 +68,20 @@ class InvertedResidual(nn.Module):
 
 
 class MobileNetV2(nn.Module):
-    def __init__(self, n_class=200, input_size=64, width_mult=1.):
+    def __init__(self, n_class=200, input_size=64, width_mult=1., cfg=[16, 24, 32, 64, 96, 160, 320], inc=32, ouc=1280):
         super(MobileNetV2, self).__init__()
         block = InvertedResidual
-        input_channel = 32
-        last_channel = 1280
+        input_channel = inc
+        last_channel = ouc
         interverted_residual_setting = [
             # t, c, n, s
-            [1, 16, 1, 1],
-            [6, 24, 2, 2],
-            [6, 32, 3, 2],
-            [6, 64, 4, 2],
-            [6, 96, 3, 1],
-            [6, 160, 3, 2],
-            [6, 320, 1, 1]
+            [1, cfg[0], 1, 1],
+            [6, cfg[1], 2, 2],
+            [6, cfg[2], 3, 2],
+            [6, cfg[3], 4, 2],
+            [6, cfg[4], 3, 1],
+            [6, cfg[5], 3, 2],
+            [6, cfg[6], 1, 1]
         ]
 
         # building first layer
@@ -132,12 +132,12 @@ class MobileNetV2(nn.Module):
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
 
-def mobileNetV2(pretrained=False, **kwargs):
+def mobileNetV2(pretrained=False, cfg=[16, 24, 32, 64, 96, 160, 320], inc=32, ouc=1280, **kwargs):
     """Constructs a ResNet-34 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = MobileNetV2()
+    model = MobileNetV2(cfg=cfg, inc=inc, ouc=ouc)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['mobilenetv2']))
     return model

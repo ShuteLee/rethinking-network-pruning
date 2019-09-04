@@ -111,7 +111,7 @@ def main():
 
     # create model
     print("=> creating model '{}'".format(args.arch))
-    model = MobileNet()
+    model = MobileNetV2()
     model = torch.nn.DataParallel(model).cuda()
     
     # define loss function (criterion) and optimizer
@@ -218,7 +218,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
     for i, (input, target) in enumerate(train_loader):
         input, target = input.cuda(), target.cuda()
-        # adjust_learning_rate(optimizer, epoch, i, train_loader_len)
+        adjust_learning_rate(optimizer, epoch, i, train_loader_len)
 
         # compute output
         output = model(input)
